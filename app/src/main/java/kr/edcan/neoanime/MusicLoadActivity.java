@@ -2,10 +2,16 @@ package kr.edcan.neoanime;
 
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.Intent;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -17,10 +23,15 @@ import java.util.List;
 
 
 public class MusicLoadActivity extends ActionBarActivity {
+
+    ImageView imageView;
+    Intent intent;
     Elements titles;
-    String url;
-    String ss;
-    String[] arr, arr2;
+    String url, filelink, imglink;
+    String songTitle;
+    Button download;
+    Runnable setLayout, task;
+    TextView titleText;
     private long latestId = -1;
     private DownloadManager downloadManager;
     private DownloadManager.Request request;
@@ -30,19 +41,35 @@ public class MusicLoadActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_load);
-        String s = "<a class=\"hx fixed\" href=\"http://www.neoanime.co.kr/index.php?mid=ost&amp;page=1&amp;document_srl=4475410\" data-viewer=\"http://www.neoanime.co.kr/index.php?mid=ost&amp;document_srl=4475410&amp;listStyle=viewer\">";
-        arr = s.split("\"");
-        arr2 = arr[3].split("=");
-        Runnable task = new Runnable() {
+        setDefault();
+        Parse();
+    }
+
+    void setDefault(){
+        intent = getIntent();
+        url = intent.getStringExtra("Link");
+        filelink = intent.getStringExtra("FileLink");
+        imglink = intent.getStringExtra("ImgLink");
+        titleText = (TextView)findViewById(R.id.title);
+        imageView = (ImageView)findViewById(R.id.image);
+        new DownloadImageTask(imageView).execute(imglink);
+        download = (Button)findViewById(R.id.download);
+        download.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Download(filelink);
+            }
+        });
+    }
+    void Parse(){
+        task = new Runnable() {
             @Override
             public void run() {
-                url = "http://www.neoanime.co.kr/" + arr2[3];
                 try {
                     Document doc = Jsoup.connect(url).get();
-                    titles = doc.select("source[src]");
-                    for (Element link : titles) {
-                        ss = link.attr("abs:src");
-                    }
+                    titles = doc.select("div>h1");
+                    songTitle = titles.get(2).text().toString();
+                    runOnUiThread(setLayout);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -50,8 +77,13 @@ public class MusicLoadActivity extends ActionBarActivity {
         };
         thread = new Thread(task);
         thread.start();
+        setLayout = new Runnable() {
+            @Override
+            public void run() {
+                titleText.setText(songTitle);
+            }
+        };
     }
-
     public void Download(String DownloadUrl) {
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         urlToDownload = Uri.parse(DownloadUrl);
