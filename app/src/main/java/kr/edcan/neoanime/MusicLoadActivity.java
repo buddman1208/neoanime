@@ -3,7 +3,8 @@ package kr.edcan.neoanime;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
-import android.media.Image;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -13,9 +14,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
@@ -27,6 +29,7 @@ public class MusicLoadActivity extends ActionBarActivity {
     ImageView imageView;
     Intent intent;
     Elements titles;
+    MediaPlayer mediaPlayer;
     String url, filelink, imglink;
     String songTitle;
     Button download;
@@ -37,31 +40,61 @@ public class MusicLoadActivity extends ActionBarActivity {
     private DownloadManager.Request request;
     private Uri urlToDownload;
     private static Thread thread = null;
+    MaterialDialog down;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_load);
         setDefault();
         Parse();
+        Stream();
+
     }
 
-    void setDefault(){
+    void setDefault() {
         intent = getIntent();
         url = intent.getStringExtra("Link");
         filelink = intent.getStringExtra("FileLink");
         imglink = intent.getStringExtra("ImgLink");
-        titleText = (TextView)findViewById(R.id.title);
-        imageView = (ImageView)findViewById(R.id.image);
+        titleText = (TextView) findViewById(R.id.title);
+        imageView = (ImageView) findViewById(R.id.image);
         new DownloadImageTask(imageView).execute(imglink);
-        download = (Button)findViewById(R.id.download);
+        download = (Button) findViewById(R.id.download);
         download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Download(filelink);
+                down = new MaterialDialog.Builder(MusicLoadActivity.this)
+                        .title("다운로드")
+                        .content(titleText.getText().toString() + "를 다운로드합니다.")
+                        .positiveText("확인")
+                        .negativeText("취소")
+                        .callback(new MaterialDialog.ButtonCallback() {
+                            @Override
+                            public void onPositive(MaterialDialog dialog) {
+                                super.onPositive(dialog);
+                                Download(filelink);
+                            }
+                        })
+                        .show();
             }
         });
     }
-    void Parse(){
+
+    void Stream() {
+        String url = filelink; // your URL here
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        try {
+            mediaPlayer.setDataSource(url);
+            mediaPlayer.prepare(); // might take long! (for buffering, etc)
+            mediaPlayer.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void Parse() {
         task = new Runnable() {
             @Override
             public void run() {
@@ -81,9 +114,11 @@ public class MusicLoadActivity extends ActionBarActivity {
             @Override
             public void run() {
                 titleText.setText(songTitle);
+                MainActivity.onClickLoad.dismiss();
             }
         };
     }
+
     public void Download(String DownloadUrl) {
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         urlToDownload = Uri.parse(DownloadUrl);
@@ -94,6 +129,16 @@ public class MusicLoadActivity extends ActionBarActivity {
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, pathSegments.get(pathSegments.size() - 1));
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).mkdirs();
         latestId = downloadManager.enqueue(request);
+    }
+
+    public void onPause() {
+        super.onPause();
+        mediaPlayer.release();
+    }
+
+    public void onDestroy() {
+        super.onDestroy();
+        mediaPlayer=null;
     }
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {

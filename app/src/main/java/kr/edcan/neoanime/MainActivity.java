@@ -10,6 +10,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -30,16 +32,21 @@ public class MainActivity extends ActionBarActivity {
     Runnable asdf, task;
     private static Thread thread = null;
     ProgressDialog progressDialog;
+    public static MaterialDialog listViewLoad, onClickLoad;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        listViewLoad= new MaterialDialog.Builder(MainActivity.this)
+                .title("로드중입니다")
+                .content("잠시만 기다려주세요")
+                .progress(true,0)
+                .show();
         loadMusicList();
     }
 
     public void loadMusicList() {
-        progressDialog = ProgressDialog.show(MainActivity.this, "음악 목록 로딩중", "잠시만 기다려주세요", true);
         Runnable task = new Runnable() {
             @Override
             public void run() {
@@ -70,6 +77,7 @@ public class MainActivity extends ActionBarActivity {
                     for (Element link : imgs) {
                         Log.e("imgs link", link.attr("abs:src"));
                         music_imgs[imgs_count] = link.attr("abs:src");
+                        imgs_count+=1;
                     }
                     runOnUiThread(asdf);
                 } catch (IOException e) {
@@ -79,23 +87,13 @@ public class MainActivity extends ActionBarActivity {
         };
         thread = new Thread(task);
         thread.start();
-        asdf = new Runnable() {
+        asdf = new Thread() {
             @Override
             public void run() {
                 setData();
             }
         };
     }
-
-    public void Toast(String s, boolean isLong) {
-        Toast.makeText(getApplicationContext(), s, (isLong == true) ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
-    }
-
-    public void Toast(int s, boolean isLong) {
-        Toast.makeText(getApplicationContext(), s + "", (isLong == true) ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
-    }
-
-
     void setData() {
         main_ListView = (ListView) findViewById(R.id.main_listview);
         arrayList = new ArrayList<>();
@@ -104,16 +102,29 @@ public class MainActivity extends ActionBarActivity {
         }
         DataAdapter adapter = new DataAdapter(getApplicationContext(), arrayList);
         main_ListView.setAdapter(adapter);
-        progressDialog.dismiss();
+        listViewLoad.dismiss();
         main_ListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                onClickLoad = new MaterialDialog.Builder(MainActivity.this)
+                        .title("로드중입니다")
+                        .content("잠시만 기다려주세요")
+                        .progress(true,0)
+                        .show();
                 startActivity(new Intent(getApplicationContext(), MusicLoadActivity.class)
                         .putExtra("Link", music_link[position])
                         .putExtra("ImgLink", music_imgs[position])
                         .putExtra("FileLink", music_file[position]));
             }
         });
+    }
+
+    public void Toast(String s, boolean isLong) {
+        Toast.makeText(getApplicationContext(), s, (isLong == true) ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
+    }
+
+    public void Toast(int s, boolean isLong) {
+        Toast.makeText(getApplicationContext(), s + "", (isLong == true) ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
     }
 //
 //    @Override

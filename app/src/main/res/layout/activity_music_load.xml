@@ -14,9 +14,14 @@
     <LinearLayout
         android:background="#3c3c3c"
         android:layout_width="match_parent"
-        android:layout_height="2dp"></LinearLayout>
+        android:layout_height="2dp">
+    </LinearLayout>
     <TextView
         android:id="@+id/description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <ImageView
+        android:id="@+id/image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <LinearLayout
@@ -24,11 +29,10 @@
         android:layout_width="match_parent"
         android:layout_height="2dp"></LinearLayout>
     <Button
+        android:text="다운로드"
         android:id="@+id/download"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
-    <ImageView
-        android:id="@+id/image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+
+
 </LinearLayout>
