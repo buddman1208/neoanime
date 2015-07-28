@@ -7,6 +7,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -21,13 +22,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements View.OnClickListener{
 
+
+    Button next_page, prev_page;
     String url, s;
     Elements music, name, imgs;
     ArrayList<CData> arrayList;
     ListView main_ListView;
-    int count, link_count, file_count, name_count, imgs_count;
+    int count, link_count, file_count, name_count, imgs_count, page;
     String[] music_file, music_link, music_name, music_imgs;
     Runnable asdf, task;
     private static Thread thread = null;
@@ -43,18 +46,27 @@ public class MainActivity extends ActionBarActivity {
                 .content("잠시만 기다려주세요")
                 .progress(true,0)
                 .show();
+        next_page = (Button)findViewById(R.id.nextpage);
+        prev_page = (Button)findViewById(R.id.prevpage);
+        page = 1;
+        next_page.setOnClickListener(this);
+        prev_page.setOnClickListener(this);
+        restData();
         loadMusicList();
     }
 
+    public void restData(){
+        music_file = new String[20];
+        music_link = new String[20];
+        music_name = new String[23];
+        music_imgs = new String[23];
+        count = file_count = imgs_count = link_count = name_count = 0;
+    }
     public void loadMusicList() {
         Runnable task = new Runnable() {
             @Override
             public void run() {
-                url = "http://www.neoanime.co.kr/index.php?mid=ost&page=1";
-                music_file = new String[20];
-                music_link = new String[20];
-                music_name = new String[23];
-                music_imgs = new String[23];
+                url = "http://www.neoanime.co.kr/index.php?mid=ost&page="+page;
                 arrayList = new ArrayList<>();
                 try {
                     Document doc = Jsoup.connect(url).get();
@@ -125,6 +137,22 @@ public class MainActivity extends ActionBarActivity {
 
     public void Toast(int s, boolean isLong) {
         Toast.makeText(getApplicationContext(), s + "", (isLong == true) ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.prevpage:
+                restData();
+                page--;
+                loadMusicList();
+                break;
+            case R.id.nextpage:
+                restData();
+                page++;
+                loadMusicList();
+                break;
+        }
     }
 //
 //    @Override

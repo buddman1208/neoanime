@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,4 +8,20 @@
         android:id="@+id/main_listview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"></ListView>
-</LinearLayout>
+
+
+    <Button
+        android:text="prev"
+        android:layout_gravity="bottom"
+        android:id="@+id/prevpage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:text="right"
+        android:layout_gravity="bottom|right"
+        android:id="@+id/nextpage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</FrameLayout>
