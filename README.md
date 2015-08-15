@@ -1,2 +1,2 @@
-# <CLOSED> neoanime
+# CLOSED!!!!
 NeoAnime Music Streaming Application
